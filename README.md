@@ -19,11 +19,9 @@ BASE_NAMES (provided) lists the files to process (without extension).
     --- align_clusters.py
     *** Purpose:
     Rotate centered clusters (from recenter_argon.py) to maximize overlap in oxygen atom positions
-    Output: Cubic grid of computed density in format adapted for visualization using VESTA (extension
-    .ped).
+    Output: Rotated xyz coordinate files to be used as input for density_average.py
     *** Usage:
-    Usage
------
+
     python align_clusters.py [options]
 
     Input / output
@@ -115,3 +113,56 @@ BASE_NAMES (provided) lists the files to process (without extension).
       topo-mismatch (any SOAP)                  →  coarse
 
 Requirements: numpy, scipy (>= 1.0; sph_harm / sph_harm_y auto-detected)
+==============================================================================
+--- density_average.py ---
+*** Purpose:
+Assign Gaussians to each center in the centered and rotated cluster files. Add up the densities
+on a cubic grid and output in format suitable for visualizing with VESTA (extension .ped)
+
+*** Usage:
+Input files
+-----------
+BASE_NAMES
+    One cluster basename per line (extension stripped; .rot appended).
+
+weights file  (e.g. 4C_weights.dat, supplied via --weights_file)
+    Two-column ASCII:  weight  basename
+    Weights are re-normalised internally so they need not sum to 1.
+
+Parameters (command line — see --help)
+---------------------------------------
+--basenames     FILE   BASE_NAMES file                   (default: BASE_NAMES)
+--weights_file  FILE   Two-column weight file            (REQUIRED)
+--ext_in        STR    Extension of aligned files        (default: .rot)
+--R_max         FLOAT  Half-edge of cubic grid (Å)       (default: 5.4)
+--step_R        FLOAT  Voxel size (Å)                    (default: 0.10)
+--alpha_O       FLOAT  Gaussian exponent for O (Å⁻²)    (default: 1.75)
+--alpha_H       FLOAT  Gaussian exponent for H (Å⁻²)    (default: 6.77)
+--Do_H          INT    H contribution: +1, -1, or 0      (default: 1)
+--thresh        FLOAT  Gaussian exponent cutoff           (default: 14.0)
+--weight_thresh FLOAT  Skip clusters below this weight   (default: 1e-6)
+--dmin_file     FILE   alignment_dmin.txt from align_clusters.py
+                       Used for topology-based exclusion  (default: alignment_dmin.txt)
+--exclude_topo  STR    Comma-separated labels to exclude. Each is matched
+                       against the Topology column (DODEC, CAGE, MIXED, LIQUID
+                       — per-cluster ring topology) AND the Group prefix (CS1,
+                       CS2, DODEC, LIQUID — simulation box source, the part
+                       before "/" in e.g. CS1/DODEC).  "CS1,CS2,DODEC" thus
+                       excludes all clusters from CS1 and CS2 boxes plus any
+                       cluster whose own ring topology is DODEC.
+--out           STR    Output VESTA .ped file             (default: GRID.ped)
+--nthreads      INT    Worker processes                   (default: all CPUs)
+--subtract      FILE   Subtract a previously computed .ped grid from the
+                       result before writing.  Grids must share the same
+                       R_max and step_R.  Useful for difference maps.
+--equal_weights        Use uniform weights (1/N) for all active clusters,
+                       ignoring the values in --weights_file.  The weight
+                       file is still required for the active-cluster list
+                       (clusters with weight > weight_thresh are included;
+                       all others are excluded as usual).
+
+Requirements: numpy, Python >= 3.6
+=============================================================================
+--- angle_distribution.py ---
+*** Purpose:
+
