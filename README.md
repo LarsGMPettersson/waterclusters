@@ -117,7 +117,9 @@ Requirements: numpy, scipy (>= 1.0; sph_harm / sph_harm_y auto-detected)
 --- density_average.py ---
 *** Purpose:
 Assign Gaussians to each center in the centered and rotated cluster files. Add up the densities
-on a cubic grid and output in format suitable for visualizing with VESTA (extension .ped)
+on a cubic grid and output in format suitable for visualizing with VESTA (extension .ped). Weights
+here obtained from SpecSwap-RMC fitting and summed according to BASE_NAMES. See 4C_weights.dat for
+an example.
 
 *** Usage:
 Input files
@@ -162,7 +164,43 @@ Parameters (command line — see --help)
                        all others are excluded as usual).
 
 Requirements: numpy, Python >= 3.6
-=============================================================================
+==============================================================================
 --- angle_distribution.py ---
 *** Purpose:
+Compute the weighted distribution of the angle between the nearest
+O-H bond vector of each water molecule and the direction from that
+oxygen toward the central Argon atom.
 
+Geometry
+--------
+For each water molecule (O atom) within R_max of Ar:
+  - r_O  = O position  (Ar is at origin in .cen files)
+  - r_H1, r_H2 = the two H atoms belonging to that O (paired by nearest-O)
+  - Nearest H  = whichever of H1, H2 is closer to Ar
+  - Direction from O toward Ar: u_Ar = -r_O / |r_O|
+  - O-H bond vector of nearest H: v = r_H_near - r_O
+  - Angle θ = arccos( v̂ · û_Ar )
+
+  θ = 0°  : O-H bond points directly at Ar  (H between O and Ar)
+  θ = 90° : O-H bond perpendicular to O-Ar axis
+  θ = 180°: O-H bond points away from Ar
+
+Normalization
+-------------
+Each cluster's histogram is normalised to integrate to 1 (sum × bin_width = 1).
+The final distribution is the weighted sum of those normalised histograms.
+
+Parameters
+----------
+--basenames     FILE   BASE_NAMES file              (default: BASE_NAMES)
+--weights_file  FILE   weight file (REQUIRED): weight  basename
+--ext_in        STR    file extension               (default: .cen)
+--R_max         FLOAT  O-Ar distance cutoff (Å)     (default: 5.4)
+--n_bins        INT    number of bins 0-180°        (default: 36 = 5° bins)
+--out           STR    output text file             (default: angle_dist.txt)
+--nthreads      INT    worker processes             (default: all CPUs)
+
+Requirements: numpy
+===============================================================================
+--- cage_volume.py ---
+Purpose:
