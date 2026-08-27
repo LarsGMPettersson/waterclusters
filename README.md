@@ -203,4 +203,39 @@ Parameters
 Requirements: numpy
 ===============================================================================
 --- cage_volume.py ---
-Purpose:
+*** Purpose:
+For each centred cluster (.cen file, Ar at origin) compute the volume
+available to Argon inside the cage of nearest oxygen atoms.
+
+Two volumes are reported for each cluster:
+
+  V_hull   — convex hull volume of the O atoms within R_max (Å³).
+             This is the geometric cage volume treating O atoms as points.
+
+  V_avail  — volume inside the hull not occupied by O van der Waals spheres.
+             Computed by Monte Carlo integration: random points are accepted
+             if they lie inside the convex hull AND are further than r_vdW_O
+             from every O atom.
+             V_avail = V_hull × (fraction of interior points not in any O sphere)
+
+Effective radii are derived as R = (3V/4π)^(1/3), i.e. the radius of a
+sphere with the same volume.
+
+Output
+------
+  --out FILE         per-cluster table (sorted by V_hull)
+  --hist_out FILE    two-column histogram data for plotting (V_hull and V_avail)
+
+Parameters
+----------
+  --basenames    FILE   BASE_NAMES file                  (default: BASE_NAMES)
+  --weights_file FILE   Two-column weight file (REQUIRED)
+  --ext_in       STR    File extension                   (default: .cen)
+  --R_max        FLOAT  O-Ar cutoff radius (Å)           (default: 5.4)
+  --r_vdW_O      FLOAT  O van der Waals radius (Å)       (default: 1.52)
+  --N_mc         INT    Monte Carlo points per cluster   (default: 50000)
+  --n_bins       INT    Histogram bins                   (default: 40)
+  --nthreads     INT    Worker processes                 (default: all CPUs)
+  --seed         INT    RNG seed for reproducibility     (default: 42)
+
+Requirements: numpy, scipy
